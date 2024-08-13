@@ -64,7 +64,7 @@ jobs:
       
       - name: Archive Test Results
         #if: steps.nodejs-unit-testing.steps.outcome == 'failure' || steps.nodejs-unit-testing.steps.outcome == 'success'
-        if: ${{ steps.nodejs-unit-testing.outputs.result == 'failure' || steps.nodejs-unit-testing.outputs.result == 'success' }}
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: code-coverage-result
