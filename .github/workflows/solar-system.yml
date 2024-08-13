@@ -63,7 +63,8 @@ jobs:
         run: npm run coverage
       
       - name: Archive Test Results
-        if: steps.nodejs-unit-testing.steps.outcome == 'failure' || steps.nodejs-unit-testing.steps.outcome == 'success'
+        #if: steps.nodejs-unit-testing.steps.outcome == 'failure' || steps.nodejs-unit-testing.steps.outcome == 'success'
+        if: ${{ needs.nodejs-unit-testing.outputs.result == 'failure' || needs.nodejs-unit-testing.outputs.result == 'success' }}
         uses: actions/upload-artifact@v3
         with:
           name: code-coverage-result
