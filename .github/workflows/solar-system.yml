@@ -90,4 +90,4 @@ jobs:
         with:
           context: .
           push: false                # 3aiz a build bs m3ml4 push dlw2ty
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:$(( github.sha ))       # generate new key
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}       # generate new key
