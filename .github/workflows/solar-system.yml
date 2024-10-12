@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         nodejs_version: [18,19,20]
-        operating_system: [ubuntu-latest,macos-latest]
+        operating_system: [ubuntu-latest]
         exclude:
           - nodejs_version: 21
             operating_system: macos-latest
@@ -132,7 +132,7 @@ jobs:
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i inventories/aws_ec2.yml playbook-deploy.yml
+        ansible-playbook -i ansible/inventories/aws_ec2.yml ansible/playbook-deploy.yml
       env:
         MONGO_URI: 'mongodb+srv://${{ vars.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@supercluster.d83jj.mongodb.net/superData'
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
