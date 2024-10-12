@@ -1,0 +1,8 @@
+plugin: amazon.aws.aws_ec2  # Tells Ansible to use AWS EC2 plugin for dynamic inventory
+regions:
+  - us-east-1              # Specify AWS region(s) where the EC2 instances are located
+filters:
+  tag:Environment: development  # Filter instances by AWS tags (e.g., 'Environment' tag with value 'development')
+keyed_groups:
+  - key: tags.Environment
+    prefix: tag_

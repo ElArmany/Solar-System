@@ -1,0 +1,17 @@
+---
+- hosts: tag_Environment_development
+  become: yes
+  tasks:
+
+    - name: Ensure the application is installed
+      ansible.builtin.shell: |
+        docker pull solar-system:latest
+        docker stop solar-system || true
+        docker rm solar-system || true
+        docker run -d --name solar-system -p 80:80 solar-system:latest
+      tags: deployment
+
+    - name: Ensure application service is running
+      ansible.builtin.systemd:
+        name: docker
+        state: started

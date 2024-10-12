@@ -104,17 +104,44 @@ jobs:
               echo Testing Image URL using wget
               wget -q -O - 127.0.0.1:3000/live | grep live
 
-      - name: Build and pushh
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true            
           tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}       # generate new key
 
-  notify:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [Code-coverage, unit-testing,docker]
+    steps:
+    - uses: actions/checkout@v2
+
+    # Install Ansible
+    - name: Install Ansible
+      run: sudo apt-get update && sudo apt-get install -y ansible
+
+    # Set up AWS credentials
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: 'us-east-1'
+
+    # Run the Ansible playbook for deployment
+    - name: Run Ansible Playbook to Deploy Application
+      run: |
+        ansible-playbook -i inventories/aws_ec2.yml playbook-deploy.yml
+      env:
+        MONGO_URI: 'mongodb+srv://${{ vars.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@supercluster.d83jj.mongodb.net/superData'
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  Notify:
     if: failure() || success()  # Notify on both failure and success
     runs-on: ubuntu-latest
-    needs: docker
+    needs: [Code-coverage, unit-testing,docker]
     steps:
     - name: Slack Notification
       uses: 8398a7/action-slack@v3
