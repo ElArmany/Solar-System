@@ -148,6 +148,13 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: 'us-east-1'
+    
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 54.88.72.144  >> ~/.ssh/known_hosts
 
   #  - name: Debug Ansible Inventory
    #   run: |
@@ -157,7 +164,7 @@ jobs:
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml -vvv
+        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml
 
   Notify:
     if: failure() || success()  # Notify on both failure and success
