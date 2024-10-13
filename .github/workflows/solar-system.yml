@@ -153,13 +153,11 @@ jobs:
    #   run: |
    #     ansible-inventory -i ./ansible/inventories/aws_ec2.yml --list
 
-    - name: Run available hosts
-      run: ansible-playbook -i available-hosts.yml
 
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i ./ansible/inventories/aws_ec2.yml ./ansible/playbook-deploy.yml -vvv
+        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml -vvv
 
   Notify:
     if: failure() || success()  # Notify on both failure and success
