@@ -151,10 +151,10 @@ jobs:
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i ansible/inventories/aws_ec2.yml ansible/playbook-deploy.yml
+        ansible-playbook -i ansible/inventories/aws_ec2.yml ansible/playbook-deploy.yml --inventory-plugin
       env:
         ANSIBLE_PYTHON_INTERPRETER: /usr/bin/python3
-
+        MONGO_URI: 'mongodb+srv://${{ vars.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@supercluster.d83jj.mongodb.net/superData'
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
