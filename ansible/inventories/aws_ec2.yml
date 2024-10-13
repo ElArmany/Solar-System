@@ -6,5 +6,5 @@ filters:
   instance-type: t2.micro
   #tag:Environment: development  # Filter instances by AWS tags (e.g., 'Environment' tag with value 'development')
 keyed_groups:
-  - key: tags.Environment
+  - key: tags
     prefix: tag_

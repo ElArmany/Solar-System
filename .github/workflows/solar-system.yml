@@ -152,7 +152,6 @@ jobs:
       run: |
         ansible-inventory -i ./ansible/inventories/aws_ec2.yml --list
 
-
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
