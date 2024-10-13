@@ -121,10 +121,6 @@ jobs:
     - name: Install Ansible
       run: sudo apt-get update && sudo apt-get install -y ansible
 
-    - name: List root directory
-      run: |
-        ls -R .
-    
 
     # Install amazon.aws Collection
     - name: Install Amazon AWS Ansible Collection
@@ -137,17 +133,19 @@ jobs:
         python-version: '3.12'
     
     # Install boto3 and botocore (Required for AWS Dynamic Inventory)
-    - name: Install Python Dependencies (boto3 and botocore)
-      run: python3 -m pip install boto3 botocore
+   # - name: Install Python Dependencies (boto3 and botocore)
+    #  run: python3 -m pip install boto3 botocore
 
-    - name: Set Python interpreter
-      run: echo "ansible_python_interpreter=/usr/bin/python3" >> ansible.cfg
+    - name: Install Ansible and dependencies
+      run: |
+        sudo apt-get install python3-pip
+        python3 -m pip install --upgrade pip
+        python3 -m pip install boto3 botocore ansible
 
     - name: List files
       run: |
         ls -R ./ansible/inventories/
     
-
 
     # Set up AWS credentials
     - name: Configure AWS Credentials
