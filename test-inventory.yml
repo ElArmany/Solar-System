@@ -1,0 +1,4 @@
+- hosts: tag_Environment_development
+  tasks:
+    - debug:
+        msg: "Host {{ inventory_hostname }} is available."
