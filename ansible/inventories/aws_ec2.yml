@@ -4,7 +4,7 @@ regions:
   - us-east-1              # Specify AWS region(s) where the EC2 instances are located
 filters:
   instance-type: t2.micro
-  tag:Environment: development  # Filter instances by AWS tags (e.g., 'Environment' tag with value 'development')
+  "tag:Environment": development  # Filter instances by AWS tags (e.g., 'Environment' tag with value 'development')
 keyed_groups:
   - key: tags
     prefix: tag_
