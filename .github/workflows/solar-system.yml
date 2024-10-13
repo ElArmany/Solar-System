@@ -145,13 +145,13 @@ jobs:
 
     - name: Debug Ansible Inventory
       run: |
-        ansible-inventory -i ElArmany/Solar-System/ansible/inventories/aws_ec2.yml --list
+        ansible-inventory -i ansible/inventories/aws_ec2.yml --list
 
 
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i ElArmany/Solar-System/ansible/inventories/aws_ec2.yml ElArmany/Solar-System/ansible/playbook-deploy.yml
+        ansible-playbook -i ansible/inventories/aws_ec2.yml ansible/playbook-deploy.yml
 
   Notify:
     if: failure() || success()  # Notify on both failure and success
