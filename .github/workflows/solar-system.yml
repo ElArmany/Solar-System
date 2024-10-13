@@ -155,6 +155,7 @@ jobs:
         echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ec2-54-88-72-144.compute-1.amazonaws.com >> ~/.ssh/known_hosts
+        
 
   #  - name: Debug Ansible Inventory
    #   run: |
