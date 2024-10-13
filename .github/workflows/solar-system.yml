@@ -140,11 +140,7 @@ jobs:
         python3 -m pip install --upgrade pip
         python3 -m pip install boto3 botocore ansible
 
-    - name: List files
-      run: |
-        ls -R ./ansible/inventories/
     
-
     # Set up AWS credentials
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -156,6 +152,9 @@ jobs:
   #  - name: Debug Ansible Inventory
    #   run: |
    #     ansible-inventory -i ./ansible/inventories/aws_ec2.yml --list
+
+    - name: Run available hosts
+      run: ansible-playbook -i available-hosts.yml
 
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
