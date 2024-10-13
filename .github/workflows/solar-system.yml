@@ -125,6 +125,11 @@ jobs:
     - name: Install Amazon AWS Ansible Collection
       run: |
         ansible-galaxy collection install amazon.aws
+
+    - name: Set up Python 3
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
     
     # Install boto3 and botocore (Required for AWS Dynamic Inventory)
     - name: Install Python Dependencies (boto3 and botocore)
