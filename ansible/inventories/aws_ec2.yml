@@ -3,7 +3,8 @@ ansible_python_interpreter: /usr/bin/python3
 regions:
   - us-east-1              # Specify AWS region(s) where the EC2 instances are located
 filters:
-  tag:Environment: development  # Filter instances by AWS tags (e.g., 'Environment' tag with value 'development')
+  instance-type: t2.micro
+  #tag:Environment: development  # Filter instances by AWS tags (e.g., 'Environment' tag with value 'development')
 keyed_groups:
   - key: tags.Environment
     prefix: tag_
