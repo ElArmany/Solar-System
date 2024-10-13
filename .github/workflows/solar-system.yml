@@ -133,8 +133,6 @@ jobs:
         python-version: '3.12'
     
     # Install boto3 and botocore (Required for AWS Dynamic Inventory)
-   # - name: Install Python Dependencies (boto3 and botocore)
-    #  run: python3 -m pip install boto3 botocore
 
     - name: Install Ansible and dependencies
       run: |
