@@ -60,7 +60,7 @@ jobs:
 
       - name: Check Code Coverage
         continue-on-error: true
-        run: npm run coverage
+        run: npx nyc --reporter cobertura --reporter lcov --reporter text --reporter json-summary mocha app-test.js --timeout 10000 --exit
       
       - name: Archive Test Results
         #if: steps.nodejs-unit-testing.steps.outcome == 'failure' || steps.nodejs-unit-testing.steps.outcome == 'success'
