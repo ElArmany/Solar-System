@@ -165,6 +165,8 @@ jobs:
     - name: Run Ansible Playbook to Deploy Application
       run: |
         ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: "False"
 
   Notify:
     if: failure() || success()  # Notify on both failure and success
