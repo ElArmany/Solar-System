@@ -140,6 +140,15 @@ jobs:
     - name: Install Python Dependencies (boto3 and botocore)
       run: python3 -m pip install boto3 botocore
 
+    - name: Set Python interpreter
+      run: echo "ansible_python_interpreter=/usr/bin/python3" >> ansible.cfg
+
+    - name: List files
+      run: |
+        ls -R ./ansible/inventories/
+    
+
+
     # Set up AWS credentials
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
