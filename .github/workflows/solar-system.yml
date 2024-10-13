@@ -124,6 +124,8 @@ jobs:
     # Install boto3 and botocore (Required for AWS Dynamic Inventory)
     - name: Install Python Dependencies (boto3 and botocore)
       run: pip install boto3 botocore
+      env:
+        ANSIBLE_PYTHON_INTERPRETER: /usr/bin/python3
 
     # Set up AWS credentials
     - name: Configure AWS Credentials
