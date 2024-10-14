@@ -12,3 +12,6 @@ hostnames:
   - public_dns_name  # Use public DNS name for the instances
 compose:
   ansible_host: public_dns_name  # Set ansible_host to public DNS
+
+[ec2_instances]
+ec2-54-88-72-144.compute-1.amazonaws.com ansible_ssh_user=ec2-user
