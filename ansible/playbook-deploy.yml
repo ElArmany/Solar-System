@@ -16,7 +16,7 @@
 
     - name: Ensure the application is installed
       ansible.builtin.shell: |
-        docker pull ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+        docker pull {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}        
         docker stop solar-system || true
         docker rm solar-system || true
         docker run -d --name solar-system -p 80:80 solar-system:${{ github.sha }}
