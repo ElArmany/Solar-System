@@ -1,6 +1,0 @@
----
-- hosts: all
-  tasks:
-    - name: Show available hosts
-      debug:
-        msg: "Available host: {{ inventory_hostname }}"
