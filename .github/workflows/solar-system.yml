@@ -166,7 +166,7 @@ jobs:
 
     - name: Copy public key to EC2
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98 "echo '$(cat ~/.ssh/id_rsa.pub)' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com "echo '$(cat ~/.ssh/id_rsa.pub)' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 
 
   #  - name: Debug Ansible Inventory
