@@ -181,7 +181,7 @@ jobs:
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml -u ubuntu
+        ansible-playbook -i ./ansible/inventories/aws_ec2.yml ./ansible/playbook-deploy.yml -u ubuntu
       env:
         ANSIBLE_HOST_KEY_CHECKING: "False"
 
