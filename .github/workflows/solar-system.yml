@@ -173,9 +173,9 @@ jobs:
       run: |
         ansible-config dump | grep -i remote_user
       
-  #  - name: Debug Ansible Inventory
-   #   run: |
-   #     ansible-inventory -i ./ansible/inventories/aws_ec2.yml --list
+    - name: Debug Ansible Inventory
+      run: |
+        ansible-inventory -i ./ansible/inventories/aws_ec2.yml --refresh-cache --list
 
 
     # Run the Ansible playbook for deployment
