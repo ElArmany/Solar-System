@@ -173,16 +173,10 @@ jobs:
       run: |
         ansible-config dump | grep -i remote_user
       
-    - name: Debug Ansible Inventory
-      run: |
-        ansible-inventory -i ./ansible/inventories/aws_ec2.yml --list
 
     - name: Install Prometheus
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
-        wget https://github.com/prometheus/prometheus/releases/download/v2.38.0/prometheus-2.38.0.linux-amd64.tar.gz
-        tar xvfz prometheus-*.tar.gz
-        cd prometheus-2.38.0.linux-amd64
         cat <<EOT >> prometheus.yml
         global:
           scrape_interval: 15s

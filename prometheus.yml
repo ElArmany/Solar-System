@@ -1,4 +1,4 @@
 scrape_configs:
   - job_name: 'solar-system-app'
     static_configs:
-      - targets: ['34.238.150.98:3000']
+      - targets: ['34.238.150.98:9091']
