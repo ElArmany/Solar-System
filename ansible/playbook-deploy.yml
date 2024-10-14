@@ -1,5 +1,5 @@
 ---
-- hosts: tag_Name_Solar_System
+- hosts: tag__Name_Solar_System
   become: yes
   tasks:
     - name: Ensure the application is installed
