@@ -1,7 +1,14 @@
 ---
 - hosts: tag__Name_Solar_System
   become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.12
   tasks:
+    - name: Install Docker
+      ansible.builtin.apt: 
+        name: docker
+        state: present
+        
     - name: Ensure the application is installed
       ansible.builtin.shell: |
         docker pull solar-system:latest
