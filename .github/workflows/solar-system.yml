@@ -186,14 +186,17 @@ jobs:
         ANSIBLE_HOST_KEY_CHECKING: "False"
 
   Notify:
-    if: failure() || success()  # Notify on both failure and success
     runs-on: ubuntu-latest
-    needs: [Code-coverage, unit-testing,docker,deploy]
+    needs: [Code-coverage, unit-testing, docker, deploy]
     steps:
+    - name: Set Job Status
+      id: job_status
+      run: echo "status=${{ job.status }}" >> $GITHUB_ENV
+
     - name: Slack Notification
       uses: 8398a7/action-slack@v3
       with:
-        status: ${{ job.status }}
+        status: ${{ env.status }}  # Use the captured job status from the previous step
         fields: repo,commit
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

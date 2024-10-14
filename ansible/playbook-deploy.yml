@@ -8,8 +8,9 @@
       ansible.builtin.apt: 
         name: docker
         state: present
+
     - name: Install Python
-      ansible.builtin.apt:
+      ansible.builtin.package:
         name: python3
         state: present
 
