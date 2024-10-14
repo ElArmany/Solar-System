@@ -169,6 +169,10 @@ jobs:
         ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com "echo '$(cat ~/.ssh/id_rsa.pub)' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 
 
+    - name: Verify SSH User in Ansible Configuration
+      run: |
+        ansible-config dump | grep -i remote_user
+      
   #  - name: Debug Ansible Inventory
    #   run: |
    #     ansible-inventory -i ./ansible/inventories/aws_ec2.yml --list
@@ -177,7 +181,7 @@ jobs:
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml
+        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml -u ubuntu
       env:
         ANSIBLE_HOST_KEY_CHECKING: "False"
 
