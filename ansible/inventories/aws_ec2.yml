@@ -8,10 +8,10 @@ filters:
 keyed_groups:
   - key: tags
     prefix: tag_
-hostnames:
-  - public_dns_name  # Use public DNS name for the instances
-compose:
-  ansible_host: public_dns_name  # Set ansible_host to public DNS
+#hostnames:
+#  - public_dns_name  # Use public DNS name for the instances
+#compose:
+#  ansible_host: public_dns_name  # Set ansible_host to public DNS
 
 all:
   hosts:
