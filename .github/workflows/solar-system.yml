@@ -153,7 +153,7 @@ jobs:
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 400 ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ec2-54-88-72-144.compute-1.amazonaws.com >> ~/.ssh/known_hosts
 
 
@@ -165,7 +165,7 @@ jobs:
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
-        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml -vvv
+        ansible-playbook -i ./ansible/inventories/aws_ec2.yml available-hosts.yml
       env:
         ANSIBLE_HOST_KEY_CHECKING: "False"
 
