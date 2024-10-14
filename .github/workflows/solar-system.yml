@@ -130,7 +130,7 @@ jobs:
     - name: Set up Python 3
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.10'
     
     # Install boto3 and botocore (Required for AWS Dynamic Inventory)
 
