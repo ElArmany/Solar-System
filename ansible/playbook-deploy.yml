@@ -8,7 +8,11 @@
       ansible.builtin.apt: 
         name: docker
         state: present
-        
+    - name: Install Python
+      ansible.builtin.apt:
+        name: python3
+        state: present
+
     - name: Ensure the application is installed
       ansible.builtin.shell: |
         docker pull solar-system:latest
