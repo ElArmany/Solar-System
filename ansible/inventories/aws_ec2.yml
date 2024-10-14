@@ -12,3 +12,9 @@ hostnames:
   - public_dns_name  # Use public DNS name for the instances
 compose:
   ansible_host: public_dns_name  # Set ansible_host to public DNS
+
+all:
+  hosts:
+    public_dns_name:
+      ansible_host: ec2-34-238-150-98.compute-1.amazonaws.com
+      ansible_user: ubuntu  # Adjust as necessary
