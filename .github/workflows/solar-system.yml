@@ -197,13 +197,17 @@ jobs:
     - name: Install Grafana
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
+        sudo apt-get update
         sudo apt-get install -y software-properties-common
+        wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
         sudo add-apt-repository "deb https://packages.grafana.com/oss/release/deb stable main"
         sudo apt-get update
-        sudo apt-get install grafana
+        sudo apt-get install -y grafana
+        sudo systemctl enable grafana-server
         sudo systemctl start grafana-server
         EOF
-        
+      
+
     # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
