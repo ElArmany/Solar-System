@@ -4,51 +4,25 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3.10
   tasks:
-    - name: Install necessary packages
-      ansible.builtin.apt:
-        name: 
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
-        state: present
-
-    - name: Add Docker GPG key
-      ansible.builtin.apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-
-    - name: Add Docker APT repository
-      ansible.builtin.apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        state: present
-
     - name: Install Docker
-      ansible.builtin.apt:
-        name: docker-ce
+      ansible.builtin.apt: 
+        name: docker
         state: present
 
-    - name: Pull Docker image
-      community.docker.docker_image:
-        name: "{{ DOCKERHUB_USERNAME }}/solar-system"
-        tag: "{{ GITHUB_SHA }}"
-        source: pull
+    - name: Install Python
+      ansible.builtin.package:
+        name: python3
+        state: present
 
-    - name: Stop existing container
-      community.docker.docker_container:
-        name: solar-system
-        state: absent
+    - name: Ensure the application is installed
+      ansible.builtin.shell: |
+        docker pull {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}        
+        docker stop solar-system || true
+        docker rm solar-system || true
+        docker run -d --name solar-system -p 3001:80 {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}
+      tags: deployment
 
-    - name: Run the Docker container
-      community.docker.docker_container:
-        name: solar-system
-        image: "{{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}"
-        state: started
-        published_ports:
-          - "3001:80"
-
-    - name: Ensure Docker service is running
+    - name: Ensure application service is running
       ansible.builtin.systemd:
         name: docker
         state: started
-        enabled: yes
