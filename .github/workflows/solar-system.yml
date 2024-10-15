@@ -207,7 +207,7 @@ jobs:
       run: |
         ansible-playbook -i ./ansible/inventories/aws_ec2.yml ./ansible/playbook-deploy.yml -u ubuntu \
         --extra-vars "DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }} GITHUB_SHA=${{ github.sha }} \
-        MONGO_URI=${{ secrets.MONGO_URI }} MONGO_USERNAME=${{ secrets.MONGO_USERNAME }} \
+        MONGO_URI=$MONGO_URI MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
         MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}"
       env:
         ANSIBLE_HOST_KEY_CHECKING: "False"
