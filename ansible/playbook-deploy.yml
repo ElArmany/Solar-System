@@ -3,6 +3,9 @@
   become: yes
   vars:
     ansible_python_interpreter: /usr/bin/python3.10
+    MONGO_URI: {{ MONGO_URI }}
+    MONGO_USERNAME: {{ MONGO_USERNAME }}}
+    MONGO_PASSWORD: {{ MONGO_PASSWORD }}
   tasks:
     - name: Install Docker
       ansible.builtin.apt: 
