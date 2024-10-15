@@ -19,12 +19,12 @@
         docker pull {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}        
         docker stop solar-system || true
         docker rm solar-system || true
-        docker run -d --name solar-system -p 3001:80 {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}
+        docker run -d --name solar-system -p 3001:80 -e MONGO_URI={{ MONGO_URI }} \
+        -e MONGO_USERNAME={{ MONGO_USERNAME }} \
+        -e MONGO_PASSWORD={{ MONGO_PASSWORD }} \
+        {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}
       tags: deployment
-      environment:
-        MONGO_URI: "{{ MONGO_URI }}"
-        MONGO_USERNAME: "{{ MONGO_USERNAME }}"
-        MONGO_PASSWORD: "{{ MONGO_PASSWORD }}"
+
 
     - name: Ensure application service is running
       ansible.builtin.systemd:
