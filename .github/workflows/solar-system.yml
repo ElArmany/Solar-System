@@ -218,7 +218,7 @@ jobs:
       run: echo "status=${{ job.status }}" >> $GITHUB_ENV
 
     - name: Notify on Success
-      if: ${{ success() }}  # Only runs if the job is successful
+      if: ${{ needs.Code-coverage.result == 'success' && needs.unit-testing.result == 'success' && needs.docker.result == 'success' && needs.deploy.result == 'success' }}  # Checks if all dependent jobs succeeded
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ env.status }}
@@ -227,7 +227,7 @@ jobs:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     - name: Notify on Failure
-      if: ${{ failure() }}  # Only runs if the job failed
+      if: ${{ needs.Code-coverage.result != 'success' || needs.unit-testing.result != 'success' || needs.docker.result != 'success' || needs.deploy.result != 'success' }}  # Checks if any dependent job failed
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ env.status }}
