@@ -206,7 +206,7 @@ jobs:
     - name: Run Ansible Playbook to Deploy Application
       run: |
         ansible-playbook -i ./ansible/inventories/aws_ec2.yml ./ansible/playbook-deploy.yml -u ubuntu \
-        --extra-vars "DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }} GITHUB_SHA=${{ github.sha }}"" \
+        --extra-vars "DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }} GITHUB_SHA=${{ github.sha }}" \
         -e "MONGO_URI=$MONGO_URI MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
         MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}"
       env:
