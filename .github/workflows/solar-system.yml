@@ -174,32 +174,32 @@ jobs:
         ansible-config dump | grep -i remote_user
       
 
-    - name: Install Prometheus
-      run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
-        cat <<EOT >> prometheus.yml
-        global:
-          scrape_interval: 15s
-        scrape_configs:
-          - job_name: 'solar-system-app'
-            static_configs:
-              - targets: ['localhost:3000']
-        EOT
-        ./prometheus --config.file=prometheus.yml &
-        EOF
+#    - name: Install Prometheus
+#      run: |
+#        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
+#        cat <<EOT >> prometheus.yml
+#        global:
+#          scrape_interval: 15s
+#        scrape_configs:
+#          - job_name: 'solar-system-app'
+#            static_configs:
+#              - targets: ['localhost:3000']
+#        EOT
+#        ./prometheus --config.file=prometheus.yml &
+#        EOF
 
-    - name: Install Grafana
-      run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
-        sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        echo "deb https://packages.grafana.com/oss/release/deb stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
-        wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-        sudo apt-get update
-        sudo apt-get install -y grafana
-        sudo systemctl enable grafana-server
-        sudo systemctl start grafana-server
-        EOF
+#    - name: Install Grafana
+#      run: |
+#        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
+#        sudo apt-get update
+#        sudo apt-get install -y software-properties-common
+#        echo "deb https://packages.grafana.com/oss/release/deb stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+#        wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+#        sudo apt-get update
+#        sudo apt-get install -y grafana
+#        sudo systemctl enable grafana-server
+#        sudo systemctl start grafana-server
+#        EOF
       
 
     # Run the Ansible playbook for deployment
