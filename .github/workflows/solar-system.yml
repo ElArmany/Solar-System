@@ -1,0 +1,222 @@
+name: Solar System Workflow
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feature-workflow
+
+env:
+  MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
+  MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
+  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+
+jobs:
+  unit-testing:
+    name: Unit Testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        nodejs_version: [18,19,20]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.nodejs_version }}-npm-cache
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.nodejs_version }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.nodejs_version }}
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Unit Testing
+        id: nodejs-unit-testing
+        run: npm test
+
+      - name: Archive test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: mocha-test-result
+          path: test-results.xml
+    
+  Code-coverage:
+    name: Code-Coverage
+    needs: unit-testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-coverage-npm-cache
+          restore-keys: |
+            ${{ runner.os }}-node
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Run Code Coverage
+        continue-on-error: true
+        run: npm run coverage
+      
+      - name: Archive Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage-result
+          path: coverage
+          retention-days: 5
+
+  docker:
+    name: Docker Build and Push
+    needs: [Code-coverage, unit-testing]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Dockerhub login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker    
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+
+      - name: Run Docker Container for Testing
+        run: |
+              docker images
+              docker run --name solar-system-app -d -p 3000:3000 -e MONGO_URI=$MONGO_URI -e MONGO_USERNAME=$MONGO_USERNAME \
+              -e MONGO_PASSWORD=$MONGO_PASSWORD \
+              ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+              export IP=$(docker inspect -f '{{range .NetworkSettings.Network}}{{.IPAddress}}{{end}}' solar-system-app)
+              echo $IP
+              docker inspect solar-system-app | grep -i IPAddress
+              echo Testing Image URL using wget
+              wget -q -O - 127.0.0.1:3000/live | grep live
+
+      - name: Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true           
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}       # generate new key
+
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: [docker]
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install Ansible
+      run: sudo apt-get update && sudo apt-get install -y ansible
+
+    - name: Install Amazon AWS Ansible Collection
+      run: |
+        ansible-galaxy collection install amazon.aws
+
+    - name: Set up Python 3
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install boto3 botocore ansible
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: 'us-east-1'
+    
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ec2-34-238-150-98.compute-1.amazonaws.com >> ~/.ssh/known_hosts
+
+    - name: Add SSH key to agent
+      run: |
+        eval $(ssh-agent -s)
+        ssh-add ~/.ssh/id_rsa
+
+    - name: Generate public key from private key
+      run: ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+
+    - name: Copy public key to EC2
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com "echo '$(cat ~/.ssh/id_rsa.pub)' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+
+    - name: Verify SSH User in Ansible Configuration
+      run: |
+        ansible-config dump | grep -i remote_user
+      
+    - name: Run Ansible Playbook to Deploy Application
+      run: |
+        ansible-playbook -i ./ansible/inventories/aws_ec2.yml ./ansible/playbook-deploy.yml -u ubuntu \
+        --extra-vars "DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }} GITHUB_SHA=${{ github.sha }}" \
+        -e "MONGO_URI=$MONGO_URI MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
+        MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}"
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: "False"
+
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [docker, deploy]
+    steps:
+    - name: Set Job Status
+      id: job_status
+      run: echo "status=${{ job.status }}" >> $GITHUB_ENV
+
+    - name: Notify Success on Slack
+      if: ${{ needs.deploy.result == 'success' }}
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        fields: repo,commit
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify Failure on Slack
+      if: ${{ needs.deploy.result != 'success' }}
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        fields: repo,commit
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+

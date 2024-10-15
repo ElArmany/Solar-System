@@ -1,0 +1,32 @@
+---
+- hosts: tag__Name_Solar_System
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.10
+  tasks:
+    - name: Install Docker
+      ansible.builtin.apt: 
+        name: docker
+        state: present
+
+    - name: Install Python
+      ansible.builtin.package:
+        name: python3
+        state: present
+
+    - name: Ensure the application is installed
+      ansible.builtin.shell: |
+        docker pull {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}        
+        docker stop solar-system || true
+        docker rm solar-system || true
+        docker run -d --name solar-system -p 3000:3000 -e MONGO_URI={{ MONGO_URI }} \
+        -e MONGO_USERNAME={{ MONGO_USERNAME }} \
+        -e MONGO_PASSWORD={{ MONGO_PASSWORD }} \
+        {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}
+      tags: deployment
+
+
+    - name: Ensure application service is running
+      ansible.builtin.systemd:
+        name: docker
+        state: started
