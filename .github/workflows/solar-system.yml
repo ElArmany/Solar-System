@@ -14,26 +14,29 @@ env:
 jobs:
   unit-testing:
     name: Unit Testing
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         nodejs_version: [18,19,20]
-        operating_system: [ubuntu-latest]
-        exclude:
-          - nodejs_version: 21
-            operating_system: macos-latest
-
-    runs-on: ${{ matrix.operating_system }}
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup NodeJs
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.nodejs_version }}-npm-cache
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.nodejs_version }}
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.nodejs_version }}
 
       - name: Install Dependencies
-        run: npm install --save-dev nyc
+        run: npm install
 
       - name: Unit Testing
         id: nodejs-unit-testing
@@ -50,20 +53,27 @@ jobs:
     needs: unit-testing
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup NodeJs
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-coverage-npm-cache
+          restore-keys: |
+            ${{ runner.os }}-node
+      
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Check Code Coverage
+      - name: Run Code Coverage
         continue-on-error: true
         run: npm run coverage
       
       - name: Archive Test Results
-        #if: steps.nodejs-unit-testing.steps.outcome == 'failure' || steps.nodejs-unit-testing.steps.outcome == 'success'
         if: always()
         uses: actions/upload-artifact@v3
         with:
@@ -72,11 +82,11 @@ jobs:
           retention-days: 5
 
   docker:
-    name: Containerization
+    name: Docker Build and Push
     needs: [Code-coverage, unit-testing]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
       
       - name: Dockerhub login
@@ -85,14 +95,24 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
-      - name: Build and push
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker    
+
+      - name: Build Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false                # 3aiz a build bs m3ml4 push dlw2ty
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}       # generate new key
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+          push: false
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
 
-      - name: Docker Image Test
+      - name: Run Docker Container for Testing
         run: |
               docker images
               docker run --name solar-system-app -d -p 3000:3000 -e MONGO_URI=$MONGO_URI -e MONGO_USERNAME=$MONGO_USERNAME \
@@ -104,25 +124,26 @@ jobs:
               echo Testing Image URL using wget
               wget -q -O - 127.0.0.1:3000/live | grep live
 
-      - name: Build and push
+      - name: Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true            
+          push: true       
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache     
           tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}       # generate new key
 
   deploy:
+    name: Deploy to AWS EC2
     runs-on: ubuntu-latest
-    needs: [Code-coverage, unit-testing,docker]
+    needs: [docker]
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-    # Install Ansible
     - name: Install Ansible
       run: sudo apt-get update && sudo apt-get install -y ansible
 
-
-    # Install amazon.aws Collection
     - name: Install Amazon AWS Ansible Collection
       run: |
         ansible-galaxy collection install amazon.aws
@@ -131,17 +152,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
-    
-    # Install boto3 and botocore (Required for AWS Dynamic Inventory)
 
-    - name: Install Ansible and dependencies
+    - name: Install Dependencies
       run: |
-        sudo apt-get install python3-pip
         python3 -m pip install --upgrade pip
         python3 -m pip install boto3 botocore ansible
 
-    
-    # Set up AWS credentials
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -168,41 +184,10 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com "echo '$(cat ~/.ssh/id_rsa.pub)' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 
-
     - name: Verify SSH User in Ansible Configuration
       run: |
         ansible-config dump | grep -i remote_user
       
-
-#    - name: Install Prometheus
-#      run: |
-#        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
-#        cat <<EOT >> prometheus.yml
-#        global:
-#          scrape_interval: 15s
-#        scrape_configs:
-#          - job_name: 'solar-system-app'
-#            static_configs:
-#              - targets: ['localhost:3000']
-#        EOT
-#        ./prometheus --config.file=prometheus.yml &
-#        EOF
-
-#    - name: Install Grafana
-#      run: |
-#        ssh -i ~/.ssh/id_rsa ubuntu@ec2-34-238-150-98.compute-1.amazonaws.com << 'EOF'
-#        sudo apt-get update
-#        sudo apt-get install -y software-properties-common
-#        echo "deb https://packages.grafana.com/oss/release/deb stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
-#        wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-#        sudo apt-get update
-#        sudo apt-get install -y grafana
-#        sudo systemctl enable grafana-server
-#        sudo systemctl start grafana-server
-#        EOF
-      
-
-    # Run the Ansible playbook for deployment
     - name: Run Ansible Playbook to Deploy Application
       run: |
         ansible-playbook -i ./ansible/inventories/aws_ec2.yml ./ansible/playbook-deploy.yml -u ubuntu \
@@ -212,28 +197,29 @@ jobs:
       env:
         ANSIBLE_HOST_KEY_CHECKING: "False"
 
-  Notify:
+  notify:
+    name: Send Notifications
     runs-on: ubuntu-latest
-    needs: [Code-coverage, unit-testing, docker, deploy]
+    needs: [docker, deploy]
     steps:
     - name: Set Job Status
       id: job_status
       run: echo "status=${{ job.status }}" >> $GITHUB_ENV
 
-    - name: Notify on Success
-      if: ${{ needs.Code-coverage.result == 'success' && needs.unit-testing.result == 'success' && needs.docker.result == 'success' && needs.deploy.result == 'success' }}  # Checks if all dependent jobs succeeded
+    - name: Notify Success on Slack
+      if: ${{ needs.deploy.result == 'success' }}
       uses: 8398a7/action-slack@v3
       with:
-        status: ${{ env.status }}
+        status: success
         fields: repo,commit
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-    - name: Notify on Failure
-      if: ${{ needs.Code-coverage.result != 'success' || needs.unit-testing.result != 'success' || needs.docker.result != 'success' || needs.deploy.result != 'success' }}  # Checks if any dependent job failed
+    - name: Notify Failure on Slack
+      if: ${{ needs.deploy.result != 'success' }}
       uses: 8398a7/action-slack@v3
       with:
-        status: ${{ env.status }}
+        status: failure
         fields: repo,commit
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
