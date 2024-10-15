@@ -60,7 +60,7 @@ jobs:
 
       - name: Check Code Coverage
         continue-on-error: true
-        run: npx nyc --reporter cobertura --reporter lcov --reporter text --reporter json-summary mocha app-test.js --timeout 10000 --exit
+        run: npm run coverage
       
       - name: Archive Test Results
         #if: steps.nodejs-unit-testing.steps.outcome == 'failure' || steps.nodejs-unit-testing.steps.outcome == 'success'
@@ -95,7 +95,7 @@ jobs:
       - name: Docker Image Test
         run: |
               docker images
-              docker run --name solar-system-app -d -p 3000:80 -e MONGO_URI=$MONGO_URI -e MONGO_USERNAME=$MONGO_USERNAME \
+              docker run --name solar-system-app -d -p 3000:3000 -e MONGO_URI=$MONGO_URI -e MONGO_USERNAME=$MONGO_USERNAME \
               -e MONGO_PASSWORD=$MONGO_PASSWORD \
               ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
               export IP=$(docker inspect -f '{{range .NetworkSettings.Network}}{{.IPAddress}}{{end}}' solar-system-app)
