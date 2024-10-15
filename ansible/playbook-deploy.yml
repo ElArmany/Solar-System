@@ -21,7 +21,7 @@
         docker rm solar-system || true
         docker run -d --name solar-system -p 3001:80 {{ DOCKERHUB_USERNAME }}/solar-system:{{ GITHUB_SHA }}
       tags: deployment
-      env:
+      environment:
         MONGO_URI: "{{ MONGO_URI }}"
         MONGO_USERNAME: "{{ MONGO_USERNAME }}"
         MONGO_PASSWORD: "{{ MONGO_PASSWORD }}"
