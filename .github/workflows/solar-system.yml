@@ -83,7 +83,7 @@ jobs:
 
   docker:
     name: Docker Build and Push
-    needs: [unit-testing]
+    needs: [Code-Coverage]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
