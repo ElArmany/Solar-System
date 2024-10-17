@@ -138,12 +138,35 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    - name: Restore Ansible Galaxy Cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.ansible/collections
+        key: ansible-galaxy-${{ github.sha }}
+        restore-keys: |
+          ansible-galaxy-  
+  
     - name: Install Ansible
       run: sudo apt-get update && sudo apt-get install -y ansible
 
     - name: Install Amazon AWS Ansible Collection
       run: |
         ansible-galaxy collection install amazon.aws
+
+    - name: Save Ansible Galaxy Cache
+      if: success()
+      uses: actions/cache@v3
+      with:
+        path: ~/.ansible/collections
+        key: ansible-galaxy-${{ github.sha }}
+
+    - name: Restore Python Cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: python-deps-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          python-deps-${{ runner.os }}-
 
     - name: Set up Python 3
       uses: actions/setup-python@v5
@@ -154,6 +177,13 @@ jobs:
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install boto3 botocore ansible
+
+    - name: Save Python Cache
+      if: success()
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: python-deps-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
