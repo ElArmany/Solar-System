@@ -36,7 +36,10 @@ jobs:
           node-version: ${{ matrix.nodejs_version }}
 
       - name: Install Dependencies
-        run: npm install -g nyc && npm ci
+        run: npm ci
+
+      - name: Install nyc for coverage
+        run: npm install nyc --save-dev
 
       - name: Unit Testing
         id: nodejs-unit-testing
