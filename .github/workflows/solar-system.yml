@@ -38,9 +38,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Install nyc for coverage
-        run: npm install nyc --save-dev
-
       - name: Unit Testing
         id: nodejs-unit-testing
         run: npm test
@@ -71,6 +68,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.nodejs_version }}
+
+      - name: Install nyc for coverage
+        run: npm install nyc --save-dev
 
       - name: Run Code Coverage
         continue-on-error: true
